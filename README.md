@@ -22,7 +22,8 @@ ai-toolkit/                              # this repo = the marketplace
 │       │   └── principal-engineer-agent.md
 │       └── skills/
 │           ├── example-skill/SKILL.md
-│           └── pr-review/SKILL.md
+│           ├── pr-review/SKILL.md
+│           └── ado-explorer/SKILL.md
 ├── README.md
 └── LICENSE
 ```
@@ -41,7 +42,7 @@ to copy). Each agent's `description` is what the dispatcher reads to route to it
 | `code-explorer-agent` | **Locate** - "where is X" / "which files touch Y" | haiku |
 | `code-analyst-agent` | **Comprehend** - explain or summarize a codebase, with bounded ASCII diagrams | sonnet |
 | `code-reviewer-agent` | **Critique** - adversarial review of a diff plus its blast radius; finds, never fixes | opus |
-| `principal-engineer-agent` | **Build / decide** - architecture, implementation, debugging | opus |
+| `principal-engineer-agent` | **Build / decide** - architecture, implementation, debugging | opus[1m] |
 | `example-agent` | Template to copy when authoring a new agent | sonnet |
 
 Two disciplines run through all of them: **evidence over assumption** (state only
@@ -54,7 +55,8 @@ tools and cannot modify anything.
 
 | Skill | Purpose |
 |-------|---------|
-| `pr-review` | Review a GitHub pull request: fetch the diff via `gh`, delegate to `code-reviewer-agent`, and return a tabular gist with line permalinks plus drafted review comments. Read-only (posting is a planned follow-up). Supports multiple GitHub accounts via isolated `gh` config directories. |
+| `pr-review` | Review one or more GitHub PRs: fetch the diff via `gh`, delegate to `code-reviewer-agent`, return a tabular gist with drafted comments, then - on a separate, explicit step - post the approved draft back to the PR. For nbs PRs, pulls linked Azure DevOps tickets (`AB#`) as intent context via `ado-explorer`. Supports multiple GitHub accounts via isolated `gh` config directories. |
+| `ado-explorer` | Pull Azure DevOps work-item context for `AB#<id>` references (via `az boards`) and return a distilled intent summary. Read-only. Used directly, or to feed `pr-review` the ticket intent behind a change. |
 | `example-skill` | Template to copy when authoring a new skill. |
 
 ## Install
