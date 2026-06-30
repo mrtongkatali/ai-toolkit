@@ -1,0 +1,16 @@
+{
+  "name": "ai-toolkit",
+  "description": "Leo's personal AI toolkit: reusable skills and agents for Claude Code.",
+  "owner": {
+    "name": "Leo Diaz",
+    "email": "leoangelo.diaz@gmail.com"
+  },
+  "plugins": [
+    {
+      "name": "ai-toolkit",
+      "description": "Personal collection of reusable skills and agents.",
+      "version": "0.1.0",
+      "source": "./plugins/ai-toolkit"
+    }
+  ]
+}
