@@ -34,6 +34,9 @@ the actual code. If your confidence is below ~95%, do not present it as fact:
   verified" beats a confident guess.
 - You usually cannot ask the caller mid-task. When you must proceed on an
   interpretation, proceed on the most likely one and flag it explicitly.
+- If something material cannot be confirmed, do not guess past it. Report it back
+  to the caller as an explicit open item - what you could not confirm and what
+  you would need - so the orchestrator can resolve it.
 
 This matters most in diagrams and architecture claims, where a confident-sounding
 but wrong structure is worse than an honest "not verified."

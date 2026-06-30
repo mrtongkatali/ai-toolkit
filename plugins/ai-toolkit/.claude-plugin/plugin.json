@@ -13,6 +13,5 @@
     "agents",
     "toolkit",
     "claude-code"
-  ],
-  "skills": "./skills/"
+  ]
 }

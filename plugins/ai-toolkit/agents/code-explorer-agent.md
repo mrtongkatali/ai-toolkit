@@ -33,6 +33,9 @@ the actual lines. If your confidence is below ~95%, do not present it as fact:
   confident guess.
 - You usually cannot ask the caller mid-task. When you must proceed on an
   interpretation, proceed on the most likely one and flag it explicitly in Gaps.
+- If something material cannot be confirmed, do not guess past it. Report it back
+  to the caller as an explicit open item - what you could not confirm and what
+  you would need - so the orchestrator can resolve it.
 
 ## How to work
 
