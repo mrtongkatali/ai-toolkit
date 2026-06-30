@@ -44,14 +44,24 @@ guessing.
 
 1. **Extract the IDs**: find every `AB#<id>`, strip the `AB#`, keep the number.
    Dedupe. There may be several - resolve them all.
-2. **Fetch each work item** (read-only):
+2. **Fetch each work item** (read-only), as a standalone `az` call:
    `az boards work-item show --id <id> --output json`
-   (org/project come from the configured defaults).
-3. **Distill, do not dump**: pull the fields that convey intent - `System.Title`,
-   `System.WorkItemType`, `System.State`, `System.Description`,
+   (org/project come from the configured defaults). Run it on its own - do **not**
+   pipe it into `python3`/`jq`/`sed`/`awk` or wrap it in a `for` loop. Read the
+   returned JSON directly and pull what you need from it in-context. (A bare `az`
+   call is allow-listed and runs without a prompt; a pipe or loop is a different
+   command shape and will prompt.)
+3. **Distill, do not dump**: from the JSON, pull the fields that convey intent -
+   `System.Title`, `System.WorkItemType`, `System.State`, `System.Description`,
    `Microsoft.VSTS.Common.AcceptanceCriteria`, assignee, and parent/related links.
-   Strip HTML and keep it short. Do not paste the whole raw work item.
-4. **Note gaps**: if a field is empty (e.g. no acceptance criteria) or a fetch
+   `System.Description` and the acceptance criteria come back as HTML - strip the
+   tags and unescape entities **yourself** as you write the summary; do not shell
+   out to a parser to do it. Keep it short. Do not paste the whole raw work item.
+4. **Resolve linked items** (optional): when parent/related links matter, fetch
+   each with its own standalone call - e.g.
+   `az boards work-item show --id <id> --query "{type:fields.\"System.WorkItemType\",state:fields.\"System.State\",title:fields.\"System.Title\"}" -o json`.
+   One call per id; do not batch them in a `for` loop.
+5. **Note gaps**: if a field is empty (e.g. no acceptance criteria) or a fetch
    failed, say so - do not invent intent that is not there.
 
 ## What to return
