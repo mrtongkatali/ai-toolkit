@@ -87,8 +87,3 @@ reading along live. Make it a clean hand-off, not a running narrative:
   to verify before trusting this.
 
 Lead with the outcome. Keep it tight and parseable - it is another agent's input.
-
-## Skills and workflows
-
-<!-- To be added. Reference the skills and workflows this agent should use as
-the toolkit grows. -->
