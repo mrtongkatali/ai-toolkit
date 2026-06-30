@@ -213,6 +213,26 @@ Lead with the verdict, then a findings table:
 Below the table, include the reviewer's **Blast radius** and **Unconfirmed**
 sections verbatim - those are review signal, not noise.
 
+## Comment voice
+
+Anything that gets posted to the PR - the drafted comment bodies, the review
+verdict/summary, the blast-radius comment - goes out on your behalf, so it must
+read like *you* wrote it: a colleague leaving a quick note, not an AI. Casual,
+direct, short.
+
+- Write like you talk; contractions are fine ("this'll double-count", "looks like
+  a typo"). One or two sentences beats a paragraph.
+- Lead with the issue and the fix. Skip preamble like "Great work, but..." or
+  "It's worth noting that...".
+- Ask when you're unsure ("is this intentional?") instead of over-hedging.
+- Avoid AI tells: no stock transitions ("Additionally", "Furthermore",
+  "Moreover"), no "I'd suggest considering", no filler, no em dashes (use "-"),
+  and don't turn every comment into a bullet list.
+- Stay specific and technically accurate - just say it like a human would.
+
+The draft stores these bodies and the post step sends them verbatim, so the voice
+you draft is the voice that ships - get it right at draft time.
+
 ## Draft artifact
 
 Save the drafted comments so the post step transmits exactly what was approved
