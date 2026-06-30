@@ -78,7 +78,7 @@ Every gh call must run under the right account's config dir:
    **Read what's already been said before reviewing.** Pull the existing
    `comments` and `reviews` - including bot reviewers like CodeRabbit, which often
    leaves an auto-summary in the PR body and inline notes. Distill them into a
-   short "already raised" digest and pass it to the reviewer in step 5 with the
+   short "already raised" digest and pass it to the reviewer in step 6 with the
    instruction to *not* repeat points already made. This keeps the review additive
    (new signal) instead of echoing what the author has already seen, and avoids
    posting duplicate comments.
@@ -96,14 +96,27 @@ Every gh call must run under the right account's config dir:
    nothing to lose). If the repo is not cloned locally, clone it to a temp dir
    first. If the code cannot be made available at all, continue but expect the
    reviewer to flag limited blast-radius coverage.
-5. **Delegate the review** - dispatch `ai-toolkit:code-reviewer-agent` with a
+5. **Pull ticket intent (best-effort, additive)** - for nbs PRs, scan the PR
+   body/description (and commit messages / branch name) for `AB#<id>` refs. If any
+   are found, dispatch `ai-toolkit:ado-explorer` to resolve them into distilled
+   intent (goal + acceptance criteria). This stage is strictly additive and must
+   never block the review:
+   - **Success** -> pass the intent to the reviewer in step 6 as an extra lens
+     (does the change satisfy the ticket? scope creep? ticket stale vs code?) -
+     never as a replacement for the adversarial pass.
+   - **No `AB#`, or not an nbs PR** -> skip silently.
+   - **Failure** (ADO unreachable, not configured/authed, work item not found) ->
+     do NOT stop. Note "couldn't pull AB#<id> context (<reason>)" and review the
+     PR on its own merits as usual. ADO being down never degrades the code review.
+6. **Delegate the review** - dispatch `ai-toolkit:code-reviewer-agent` with a
    self-contained prompt containing: the PR intent/title, the diff, the worktree
-   (or local-clone) path to grep for blast radius, and the "already raised" digest
-   from step 3. Let it return its standard contract (Verdict, Findings by severity,
-   Blast radius, Unconfirmed).
-6. **Assemble the gist** from the agent's findings (see Output).
-7. **Save the draft** for later posting (see Draft artifact). Do not post.
-8. **Return the gist**, and tell the caller they can refine the draft, then ask
+   (or local-clone) path to grep for blast radius, the "already raised" digest
+   from step 3, and the ADO ticket intent from step 5 if it was pulled. Let it
+   return its standard contract (Verdict, Findings by severity, Blast radius,
+   Unconfirmed).
+7. **Assemble the gist** from the agent's findings (see Output).
+8. **Save the draft** for later posting (see Draft artifact). Do not post.
+9. **Return the gist**, and tell the caller they can refine the draft, then ask
    to post it.
 
 ## Scaling effort to PR size
