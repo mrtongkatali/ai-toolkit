@@ -70,27 +70,66 @@ Every gh call must run under the right account's config dir:
 1. **Preflight** (above).
 2. **Resolve account** -> set `GH_CONFIG_DIR`.
 3. **Fetch the PR** (read-only), prefixing every gh call with the config dir:
-   - `gh pr view <pr> --json number,title,author,url,headRefOid,headRepository,headRepositoryOwner,files`
+   - `gh pr view <pr> --json number,title,author,url,headRefOid,headRepository,headRepositoryOwner,files,comments,reviews`
    - `gh pr diff <pr>`
 
    `<pr>` may be a number (uses the current repo) or a full PR URL.
-4. **Check out the PR into an isolated worktree** so the reviewer can trace blast
-   radius without touching your working tree or current branch:
+
+   **Read what's already been said before reviewing.** Pull the existing
+   `comments` and `reviews` - including bot reviewers like CodeRabbit, which often
+   leaves an auto-summary in the PR body and inline notes. Distill them into a
+   short "already raised" digest and pass it to the reviewer in step 5 with the
+   instruction to *not* repeat points already made. This keeps the review additive
+   (new signal) instead of echoing what the author has already seen, and avoids
+   posting duplicate comments.
+4. **Get the PR code on disk for blast-radius tracing** - sized to the diff (see
+   "Scaling effort to PR size"). The default is an isolated worktree so the
+   reviewer never touches your working tree or current branch:
    - `git fetch origin pull/<pr>/head:refs/pr/<pr>` (a named ref, not `FETCH_HEAD`)
-   - `git worktree add "$HOME/.cache/ai-toolkit/pr-review/wt/<account>-pr<pr>" refs/pr/<pr>`
+   - If a worktree already exists at
+     `$HOME/.cache/ai-toolkit/pr-review/wt/<account>-pr<pr>`, reuse it: point it at
+     the freshly fetched ref (`git -C <path> checkout -f refs/pr/<pr>`) rather than
+     re-running a full `worktree add` checkout. Otherwise
+     `git worktree add "$HOME/.cache/ai-toolkit/pr-review/wt/<account>-pr<pr>" refs/pr/<pr>`.
 
    Remove it when done with `git worktree remove <path>` (read-only review leaves
    nothing to lose). If the repo is not cloned locally, clone it to a temp dir
    first. If the code cannot be made available at all, continue but expect the
    reviewer to flag limited blast-radius coverage.
 5. **Delegate the review** - dispatch `ai-toolkit:code-reviewer-agent` with a
-   self-contained prompt containing: the PR intent/title, the diff, and the
-   worktree path to grep for blast radius. Let it return its standard contract
-   (Verdict, Findings by severity, Blast radius, Unconfirmed).
+   self-contained prompt containing: the PR intent/title, the diff, the worktree
+   (or local-clone) path to grep for blast radius, and the "already raised" digest
+   from step 3. Let it return its standard contract (Verdict, Findings by severity,
+   Blast radius, Unconfirmed).
 6. **Assemble the gist** from the agent's findings (see Output).
 7. **Save the draft** for later posting (see Draft artifact). Do not post.
 8. **Return the gist**, and tell the caller they can refine the draft, then ask
    to post it.
+
+## Scaling effort to PR size
+
+The reviewer agent (opus) is the dominant token cost, so match the machinery to
+the diff instead of running the same heavy pass on every PR. Triage from the
+`files` array and diff size in step 3, then pick a tier:
+
+- **Trivial / small** (roughly 1-3 files, no cross-cutting change - e.g. a single
+  migration, a config tweak, a localized bugfix): skip the dedicated worktree.
+  Reuse the existing local clone for sibling/context files (they already exist on
+  the base branch) and hand the reviewer the diff text plus that clone path. One
+  `code-reviewer-agent`, no discovery pre-pass. This is the common case and where
+  the savings add up.
+- **Medium** (several files, one subsystem): the default - one worktree at the PR
+  ref, one `code-reviewer-agent`. No pre-pass.
+- **Large / sprawling** (many files or wide blast radius): worktree + an optional
+  `code-explorer-agent` pre-pass that maps the blast radius (callers of changed
+  symbols, related files) and hands the reviewer precise paths, so the reviewer
+  spends its budget judging rather than hunting. Use `code-analyst-agent` only
+  when the reviewer needs an unfamiliar subsystem explained before it can judge
+  correctly.
+
+Adding discovery agents costs more tokens, so only reach for them on large PRs
+where they save the reviewer more search than they cost. For trivial PRs, doing
+less is the optimization - don't pre-pass a 26-line migration.
 
 ## Reviewing multiple PRs at once (parallel)
 
