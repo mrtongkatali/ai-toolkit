@@ -23,7 +23,15 @@ export default defineConfig({
     video: 'retain-on-failure',
   },
   projects: [
-    { name: 'dev', use: { ...devices['Desktop Chrome'], baseURL: BASE_URLS.dev } },
+    // Log in ONCE and save the session so tests reuse it (no per-test login,
+    // which throttled the login endpoint).
+    { name: 'setup', testMatch: /auth\.setup\.ts/, use: { ...devices['Desktop Chrome'], baseURL: BASE_URLS.dev } },
+    {
+      name: 'dev',
+      use: { ...devices['Desktop Chrome'], baseURL: BASE_URLS.dev, storageState: '.auth/dev.json' },
+      dependencies: ['setup'],
+    },
+    // staging: needs its own auth.setup + storageState before it can run authenticated.
     { name: 'staging', use: { ...devices['Desktop Chrome'], baseURL: BASE_URLS.staging } },
   ],
 });
