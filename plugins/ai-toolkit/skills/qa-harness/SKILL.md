@@ -13,12 +13,12 @@ Glue only: `ado-explorer` supplies the AC, `code-explorer` supplies the real
 selectors/flow, Playwright does the driving. The report is a smoke signal, **not**
 a replacement for QA.
 
-## Runtime scaffold (one-time, shareable)
+## Runtime project (one-time, shareable)
 
-The skill drives a small Playwright project shipped in this skill's `scaffold/`.
+The skill drives a small Playwright project shipped in this skill's `playwright/`.
 Set it up once - this is the unit you hand a teammate:
 
-    cp -r <this-skill-dir>/scaffold ~/qa-harness && cd ~/qa-harness
+    cp -r <this-skill-dir>/playwright ~/qa-harness && cd ~/qa-harness
     npm install
     cp .env.example .env        # then fill in IMPACT_WEB_PATH + creds
 
@@ -28,7 +28,7 @@ Set it up once - this is the unit you hand a teammate:
 ## Preflight (fail clearly, exact fix for each)
 
 1. **Node >= 24.11.0** - `node -v`; if lower, stop: "Node 24.11.0+ required."
-2. **Playwright installed** - `npx playwright --version` in the scaffold dir.
+2. **Playwright installed** - `npx playwright --version` in the runtime dir.
 3. **IMPACT_WEB_PATH set and exists** - the local clone, for grounding (analysis only).
 4. **Creds present** - `QA_USER` / `QA_PASS` in env (from `.env`); never hardcode, never echo.
 5. **Target reachable** - the selected env's base URL responds.
@@ -45,7 +45,7 @@ Set it up once - this is the unit you hand a teammate:
    NOT invent a selector.
 3. **Derive test cases from the AC and confirm with the caller** before writing -
    one scenario per AC. Cheap way to catch a misread AC early.
-4. **Write throwaway Playwright specs** in the scaffold's `tests/`:
+4. **Write throwaway Playwright specs** in `playwright/tests/` (the runtime dir):
    - Log in with creds from `process.env` using the grounded selectors.
    - Select the tenant by navigating to `${baseURL}/admin/${CLIENT_ID}` (skip the
      client-picker UI).
@@ -60,17 +60,29 @@ Set it up once - this is the unit you hand a teammate:
 
 ## Output (the report)
 
-One markdown table per environment run:
+**Always write the report to `reports/AB<ticket>.md`** in the runtime dir (create
+`reports/` if needed) AND return it inline. One markdown table per environment,
+with a header of date / env / scope / result:
 
 | Test case | Scenario | Description | Status |
 |-----------|----------|-------------|--------|
 | AB#947-1  | ...      | ...         | Pass / Fail / Blocked |
 
 - One row per AC. `Blocked` = couldn't run (e.g. missing selector, env down).
-- For each failure, include the Playwright **screenshot / trace path**
-  (under `test-results/`) so the cause is visible.
+- Link the relevant artifact path (see Artifacts) next to any failing row.
 - State the honest caveats: a Pass means the generated test passed, not that the
   AC is proven; call out any `data-qaid` gaps, assumptions, or data side-effects.
+
+## Artifacts
+
+Playwright writes these under the runtime dir (all gitignored):
+
+- **HTML report** - `playwright-report/`; open with `npx playwright show-report`.
+  Every test, with embedded screenshots + traces for failures.
+- **Failure artifacts** - `test-results/<test>/`: screenshot, `trace.zip`, video,
+  captured only on failure. Open a trace with
+  `npx playwright show-trace <path/to/trace.zip>`.
+- **QA report** - `reports/AB<ticket>.md` (the table above), to hand to QA.
 
 ## Safety
 
