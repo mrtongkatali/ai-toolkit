@@ -23,7 +23,8 @@ ai-toolkit/                              # this repo = the marketplace
 │       └── skills/
 │           ├── example-skill/SKILL.md
 │           ├── pr-review/SKILL.md
-│           └── ado-explorer/SKILL.md
+│           ├── ado-explorer/SKILL.md
+│           └── qa-harness/          # SKILL.md + playwright/ runtime scaffold
 ├── README.md
 └── LICENSE
 ```
@@ -57,6 +58,7 @@ tools and cannot modify anything.
 |-------|---------|
 | `pr-review` | Review one or more GitHub PRs: fetch the diff via `gh`, delegate to `code-reviewer-agent`, return a tabular gist with drafted comments, then - on a separate, explicit step - post the approved draft back to the PR. For nbs PRs, pulls linked Azure DevOps tickets (`AB#`) as intent context via `ado-explorer`. Supports multiple GitHub accounts via isolated `gh` config directories. |
 | `ado-explorer` | Pull Azure DevOps work-item context for `AB#<id>` references (via `az boards`) and return a distilled intent summary. Read-only. Used directly, or to feed `pr-review` the ticket intent behind a change. |
+| `qa-harness` | Pre-QA acceptance gate: pull a ticket's ACs (`ado-explorer`), ground selectors in the app repo (`code-explorer`), write throwaway Playwright e2e (Node/TS) against live dev/staging, and return a tabular pass/fail report. Ships a `playwright/` runtime scaffold (login-once via `storageState`). Read-mostly - drives the live app, writes no app code. |
 | `example-skill` | Template to copy when authoring a new skill. |
 
 ## Install

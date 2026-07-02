@@ -9,7 +9,7 @@
     {
       "name": "ai-toolkit",
       "description": "Leo's personal collection of reusable skills and agents for Claude Code.",
-      "version": "0.1.3",
+      "version": "0.1.4",
       "source": "./plugins/ai-toolkit"
     }
   ]
