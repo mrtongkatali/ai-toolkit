@@ -18,6 +18,10 @@ export default defineConfig({
   use: {
     // Map Playwright's getByTestId() to the app's data-qaid attribute.
     testIdAttribute: 'data-qaid',
+    // Cap per-action waits so a missing element fails fast (~15s) instead of
+    // burning the full 60s test timeout.
+    actionTimeout: 15_000,
+    navigationTimeout: 30_000,
     screenshot: 'only-on-failure',
     trace: 'retain-on-failure',
     video: 'retain-on-failure',

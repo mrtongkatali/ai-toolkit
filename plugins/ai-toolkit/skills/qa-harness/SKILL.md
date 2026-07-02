@@ -38,15 +38,21 @@ Set it up once - this is the unit you hand a teammate:
 1. **Pull the AC** - `ado-explorer` on the ticket -> acceptance criteria. No clear
    AC -> stop and say so; there is nothing to verify.
 2. **Ground in the repo** (analysis only, via `code-explorer` over `IMPACT_WEB_PATH`):
-   - the login form's `data-qaid` hooks (plain username/password, no MFA),
    - the `data-qaid` hooks on the pages the AC touches,
-   - any Codeception test that already exercises this area, for flow and test data.
-   Use the real `data-qaid` values you find. Where one is missing, flag it - do
-   NOT invent a selector.
+   - any Codeception test that already exercises this area, for flow and test data,
+   - login selectors only if `tests/auth.setup.ts` needs updating (login is handled
+     once - see step 4).
+   Use the real `data-qaid` values you find. Where one is missing, flag it - do NOT
+   invent a selector. **Source-grounding can't tell which feature-flag UI variant
+   actually renders on the target env** - so after navigating (step 4), sanity-check
+   the real `data-qaid` present on the page against what you grounded, and re-target
+   if they differ.
 3. **Derive test cases from the AC and confirm with the caller** before writing -
    one scenario per AC. Cheap way to catch a misread AC early.
 4. **Write throwaway Playwright specs** in `playwright/tests/` (the runtime dir):
-   - Log in with creds from `process.env` using the grounded selectors.
+   - **Auth is handled ONCE** by the `setup` project (`tests/auth.setup.ts` logs in
+     and saves `storageState`); specs start already authenticated - do NOT log in
+     per-test (that throttles the login endpoint).
    - Select the tenant by navigating to `${baseURL}/admin/${CLIENT_ID}` (skip the
      client-picker UI).
    - One test per AC; assert via `getByTestId(...)` (mapped to `data-qaid`).
@@ -54,6 +60,9 @@ Set it up once - this is the unit you hand a teammate:
    - Fix TEST defects (wrong selector, timing/wait, setup) and retry, up to ~3 times.
    - A genuine AC failure is the RESULT - report it. NEVER weaken or skip an
      assertion to force green. **Self-heal fixes the test, never the verdict.**
+   - **Fail fast on shared preconditions:** when several ACs depend on one element
+     (e.g. a filter panel), verify it exists ONCE up front; if it's missing, mark
+     those ACs Blocked and skip them rather than letting each burn the timeout.
    - Run `--project=staging` too if a multi-env gate was requested.
 6. **Report** (see Output).
 7. **Discard** - tests are throwaway; clean up the generated specs.
@@ -83,6 +92,23 @@ Playwright writes these under the runtime dir (all gitignored):
   captured only on failure. Open a trace with
   `npx playwright show-trace <path/to/trace.zip>`.
 - **QA report** - `reports/AB<ticket>.md` (the table above), to hand to QA.
+
+## Making tickets QA-ready (what helps this skill)
+
+The harness grounds from source, which can't see which UI variant actually renders
+at runtime - the top source of wrong selectors. Tickets/ACs that include these are
+far more reliable to automate:
+
+- **Feature-flag state** - which variant the AC targets (e.g. "new OMEU filter UI"
+  / "flag X on"). Prevents the most common mismatch.
+- **Entry point** - the route to the feature and how to reach it (login -> tenant
+  -> route), so navigation isn't guessed.
+- **`data-qaid` on every AC-relevant element** (app convention); list new hooks in
+  the ticket. Missing hooks force brittle text/CSS fallbacks (and get flagged).
+- **Test data / preconditions** - the test client + expected data (e.g. "client
+  33517 has people with @nelnet.net emails"), so assertions are precise.
+- **Checkable phrasing + expected values** - "N Total People where N = row count"
+  beats "count reflects the list": a pass then verifies correctness, not presence.
 
 ## Safety
 
